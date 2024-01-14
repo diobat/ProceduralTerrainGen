@@ -1,6 +1,6 @@
 
 
-# FluxLumina Example Project
+# FluxLumina-based Procedural terrain generator
 
 ## Overview
 Welcome to the FluxLumina Example Project! This repository serves as a template to demonstrate the capabilities of [FluxLumina](https://github.com/diobat/FluxLumina), an OpenGL-based static library designed for high-performance graphics applications. 
@@ -34,9 +34,5 @@ cmake --build build --config Release
 cd build/Release
 
 # Run the target
-./FluxLumina_Playground.exe
+./FL_PCG.exe
 ```
-
-## Acknowledgments
-
-Materials sourced from from https://ambientcg.com/ and https://freepbr.com/
