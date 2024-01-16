@@ -7,12 +7,54 @@
 #include <algorithm>
 #include <functional>
 #include <random>
+#include <numeric> 
 
 #include "map/MapGenerator.hpp"
+
+#include "structures/landmass.hpp"              // Continents
+#include "structures/LF_landDetail.hpp"
 
 void scene4(FluxLumina& engine);
 std::array<float, 3> crossProduct(const std::array<float, 3>& a, const std::array<float, 3>& b);
 std::array<float, 3> normalizeVector(const std::array<float, 3>& a);
+
+
+namespace 
+{
+
+std::array<std::array<float,3> , 20> colorTable;
+unsigned int steps = colorTable.size();
+
+float interpolate(float a, float b, float t)
+{
+    return a + (b - a) * t;
+}
+
+void populateColorTable(std::array<float,3> colorA, std::array<float,3> colorB)
+{
+
+    for (unsigned int i(0); i < steps; ++i)
+    {
+        float t = static_cast<float>(i) / static_cast<float>(steps);
+
+        colorTable[i][0] = interpolate(colorA[0], colorB[0], t);
+        colorTable[i][1] = interpolate(colorA[1], colorB[1], t);
+        colorTable[i][2] = interpolate(colorA[2], colorB[2], t);
+    }
+}
+
+std::array<float,3> getColor(float value)
+{
+    value = std::clamp(value, 0.0f, 1.0f);
+    unsigned int index = static_cast<unsigned int>(value * static_cast<float>(steps));
+
+    return colorTable[index];
+}
+
+
+
+}
+
 
 int main(int argc, char** argv)
 {
@@ -49,74 +91,34 @@ void scene4(FluxLumina& engine)
     std::mt19937 rng(rd()); // Mersenne Twister random number generator
     std::uniform_int_distribution<unsigned int> dist(0, std::numeric_limits<unsigned int>::max());
     unsigned int seed = dist(rng);
+    // unsigned int seed = 1020;
 
-    // Generate a Perlin noise map
-    int N = 1000;       // Size of the side of the map
+    // Generate all necessary Perlin noise maps
+    int N = 700;       // Size of the side of the map
+    float global_scale = 1.0f;
 
     // Land/Water
-    std::vector<float> perlinMapLandWater = generatePerlinMap(seed+3, N, N, 2, 0.001f, 1.2f, 1.0f, 0.8f);
+    std::vector<float> perlinMapLandWater = genLandmasses(seed, N, global_scale, 0.705f);
 
-    // std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-    //         std::bind(std::plus<float>(), std::placeholders::_1, 1.0f));
+    float max_land = *std::max_element(perlinMapLandWater.begin(), perlinMapLandWater.end());
 
-    // std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-    //         std::bind(std::divides<float>(), std::placeholders::_1, 2.0f));
+    // Low freq slope
+    std::vector<float> perlinMapSlopeBase = genLandLFDetail(seed+50, N, global_scale);
 
-    float landmass_percentage = 1.0f;
+    std::vector<float> perlinMapSlope(perlinMapSlopeBase);
 
-    std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-            std::bind(std::plus<float>(), std::placeholders::_1, landmass_percentage));
+    std::transform(perlinMapSlopeBase.begin(), perlinMapSlopeBase.end(), perlinMapLandWater.begin(),
+                perlinMapSlope.begin(), std::multiplies<float>());
 
-    // By repeatedly raising to the power of two and then normalizing,
-    //we can create a convincing separationg between land and sea
-    unsigned int exponentWater = 1;
-    for (unsigned int i(0); i < exponentWater; ++i)
-    {
-        std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-                    perlinMapLandWater.begin(), std::multiplies<float>());
-    }
-
-    float maxW = *std::max_element(perlinMapLandWater.begin(), perlinMapLandWater.end());
-    std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-        std::bind(std::divides<float>(), std::placeholders::_1, maxW));
-
-
-
-    // Good low freq slope (exponent = one)
-    std::vector<float> perlinMapSlopeNormalized = generatePerlinMap(seed, N, N, 2, 0.008f, 1.2f, 1.0f, 0.8f);
+    float max_slope = *std::max_element(perlinMapSlope.begin(), perlinMapSlope.end());
 
     // Mountains everywhere
-    std::vector<float> perlinMapMountains = generatePerlinMap(seed+1, N, N, 3, 0.058f, 1.5f, 25.0f, 0.8f);
+    std::vector<float> perlinMapMountains = generatePerlinMap(seed+1, N, N, 3, 0.4f * global_scale, 1.5f, 1.0f, 0.8f);
 
-    std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapSlopeNormalized.begin(),
-            std::bind(std::plus<float>(), std::placeholders::_1, 1.0f));
+    // // Ruggedness
+    // std::vector<float> perlinMapRugged = generatePerlinMap(seed+2, N, N, 16, 0.3f * global_scale, 5.0f, 1.0f, 0.8f);
 
-    std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapSlopeNormalized.begin(),
-            std::bind(std::divides<float>(), std::placeholders::_1, 2.0f));
-
-    std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapLandWater.begin(),
-                perlinMapSlopeNormalized.begin(), std::multiplies<float>());
-
-    std::vector<float> perlinMapSlope(perlinMapSlopeNormalized);
-
-
-    unsigned int exponentSlope = 2;
-
-    // To accentuate slopes, we square the map and then normalize it
-    for (unsigned int i(0); i < exponentSlope; ++i)
-    {
-        float max = *std::max_element(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end());
-
-        std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapSlopeNormalized.begin(),
-                    std::bind(std::divides<float>(), std::placeholders::_1, max));
-
-        std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapSlopeNormalized.begin(),
-                    perlinMapSlopeNormalized.begin(), std::multiplies<float>());
-
-        std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapSlopeNormalized.begin(),
-            std::bind(std::multiplies<float>(), std::placeholders::_1, max));
-    }
-
+    // Process Mountains
     unsigned int exponentMountains = 1;
 
     // To accentuate slopes, we square the map and then normalize it
@@ -134,54 +136,61 @@ void scene4(FluxLumina& engine)
             std::bind(std::multiplies<float>(), std::placeholders::_1, max));
     }
 
-    std::vector<float> perlinMap(perlinMapSlopeNormalized.size());
+    for(int i(0); i < 7; ++i)
+    {
+    std::transform(perlinMapSlopeBase.begin(), perlinMapSlopeBase.end(), perlinMapMountains.begin(),
+        perlinMapMountains.begin(), std::multiplies<float>());
+    }
 
-    std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapMountains.begin(),
-            perlinMap.begin(), std::multiplies<float>());
+    std::transform(perlinMapSlope.begin(), perlinMapSlope.end(), perlinMapMountains.begin(),
+        perlinMapMountains.begin(), std::multiplies<float>());
+
+    // re-normalize 
+    float max = *std::max_element(perlinMapMountains.begin(), perlinMapMountains.end());
+
+    std::transform(perlinMapMountains.begin(), perlinMapMountains.end(), perlinMapMountains.begin(),
+        std::bind(std::divides<float>(), std::placeholders::_1, max));
+
+    // // Process ruggedness
+
+    // std::vector<float> perlinMapMountainsNormalized(perlinMapRugged.size());
+
+    // float max = *std::max_element(perlinMapMountains.begin(), perlinMapMountains.end());
+
+    // std::transform(perlinMapMountains.begin(), perlinMapMountains.end(), perlinMapMountainsNormalized.begin(),
+    //             std::bind(std::divides<float>(), std::placeholders::_1, max));
 
 
-    // Weight the ruggedness    
-    std::vector<float> perlinMapRugged = generatePerlinMap(seed+2, N, N, 16, 0.3f, 5.0f, 4.0f, 0.4f);
+    // for(int i(0); i < 20; ++i)
+    // {
+    // std::transform(perlinMapMountains.begin(), perlinMapMountains.end(), perlinMapRugged.begin(),
+    //     perlinMapRugged.begin(), std::multiplies<float>());
+    // }
 
-    std::vector<float> normalizedPerlinMap(perlinMap.size());
-
-    float max = *std::max_element(perlinMap.begin(), perlinMap.end());
-
-    std::transform(perlinMap.begin(), perlinMap.end(), normalizedPerlinMap.begin(),
-                std::bind(std::divides<float>(), std::placeholders::_1, max));
-
-    std::transform(normalizedPerlinMap.begin(), normalizedPerlinMap.end(), perlinMapRugged.begin(),
-        perlinMapRugged.begin(), std::multiplies<float>());
-    std::transform(normalizedPerlinMap.begin(), normalizedPerlinMap.end(), perlinMapRugged.begin(),
-        perlinMapRugged.begin(), std::multiplies<float>());
-    std::transform(normalizedPerlinMap.begin(), normalizedPerlinMap.end(), perlinMapRugged.begin(),
-        perlinMapRugged.begin(), std::multiplies<float>());
-
-
-    // re add the landmass/water base
-
+    // Add the layers together
+    //Land/Water
     std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-            std::bind(std::multiplies<float>(), std::placeholders::_1, 30.0f));
+            std::bind(std::multiplies<float>(), std::placeholders::_1, 10.0f));
 
-            
-    std::transform(perlinMap.begin(), perlinMap.end(), perlinMapLandWater.begin(),
-                perlinMap.begin(), std::plus<float>());
+    std::vector<float> perlinMap(perlinMapLandWater);
 
-
-    // re add the slope at the end
-
+    // LF Slope
     std::transform(perlinMapSlope.begin(), perlinMapSlope.end(), perlinMapSlope.begin(),
-        std::bind(std::multiplies<float>(), std::placeholders::_1, 30.0f));
+        std::bind(std::multiplies<float>(), std::placeholders::_1, 15.0f));
 
     std::transform(perlinMapSlope.begin(), perlinMapSlope.end(), perlinMap.begin(),
                 perlinMap.begin(), std::plus<float>());
 
-    std::transform(perlinMap.begin(), perlinMap.end(), perlinMapRugged.begin(),
-                perlinMap.begin(), std::plus<float>());
+    // Mountains
+    std::transform(perlinMapMountains.begin(), perlinMapMountains.end(), perlinMapMountains.begin(),
+        std::bind(std::multiplies<float>(), std::placeholders::_1, 3.0f));
 
-    std::transform(perlinMap.begin(), perlinMap.end(), perlinMap.begin(),
-        std::bind(std::plus<float>(), std::placeholders::_1, -8.5f));
+    std::transform(perlinMapMountains.begin(), perlinMapMountains.end(), perlinMap.begin(),
+            perlinMap.begin(), std::plus<float>());
 
+    // // Ruggedness
+    // std::transform(perlinMapRugged.begin(), perlinMapRugged.end(), perlinMap.begin(),
+    //             perlinMap.begin(), std::plus<float>());
 
     // Create an N by N grid of vertices in the XZ plane
     std::vector<std::array<float,3>> vertices;
@@ -246,7 +255,6 @@ void scene4(FluxLumina& engine)
         normals[i] = normalizeVector(normals[i]);
     }
 
-
     std::vector<std::array<float,3>> colors;
 
     std::array<float,3> color_green = {0.41f, 0.75f, 0.37f};
@@ -256,27 +264,26 @@ void scene4(FluxLumina& engine)
     std::array<float,3> color_blue = {0.0f, 0.18f, 0.30f};
 
 
+    populateColorTable(color_green, color_brown);
+
     for (std::size_t i(0); i < vertices.size(); ++i)
     {
         
         float y = vertices[i][1];
 
-        if (y < 1.0f)
+        if (y <= 0.0f)
         {
             colors.push_back(color_blue);
         }
-        else if (y < 25.0f)
+        else if (y < 0.5f)
         {
             colors.push_back(color_green);
         }
-        else if (y < 35.0f)
+        else if (y < 7.0f)
         {
-            if(normals[i][1] < 0.5f)
-                colors.push_back(color_green);
-            else
-                colors.push_back(color_brown);
+            colors.push_back(getColor((y) / (7.0f)));
         }
-        else if (y < 40.0f)
+        else if (y < 8.0f)
         {
             colors.push_back(color_gray);
         }
@@ -286,15 +293,13 @@ void scene4(FluxLumina& engine)
         }
     }
 
-
     engine.create_Model(vertices, indices, colors, "Basic");
 
     // Point Lights
     auto light_A = engine.create_LightSource(1);
     engine.setColor(light_A, {0.4f, 0.4f, 0.4f});
-    engine.setPosition(light_A, {N/2.0f, 50.0f, N/2.0f});
+    engine.setPosition(light_A, {N/2.0f, 80.0f, N/2.0f});
     engine.setAttenuationFactors(light_A, {1.0f, 0.000000f, 0.000000f});
-
 }
 
 std::array<float, 3> crossProduct(const std::array<float, 3>& a, const std::array<float, 3>& b) 
@@ -325,3 +330,4 @@ std::array<float, 3> normalizeVector(const std::array<float, 3>& a)
 
     return result;
 }
+
