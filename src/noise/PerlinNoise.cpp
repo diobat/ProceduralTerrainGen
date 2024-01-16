@@ -13,5 +13,21 @@ std::vector<float> generatePerlinNoise(unsigned int seed, unsigned int width, un
     std::transform(perlinMap.begin(), perlinMap.end(), perlinMap.begin(),
                 std::bind(std::multiplies<float>(), std::placeholders::_1, amplitude));
 
+
+
+    return perlinMap;
+}
+
+std::vector<float> generateTilePerlinNoise(unsigned int seed, unsigned int width, unsigned int height, float frequency, float amplitude)
+{
+    std::vector<float> perlinMap(width * height);
+
+    auto nPerlin = FastNoise::New<FastNoise::Perlin>();
+
+    nPerlin->GenTileable2D(perlinMap.data(), width, height, frequency, seed);
+
+    std::transform(perlinMap.begin(), perlinMap.end(), perlinMap.begin(),
+                std::bind(std::multiplies<float>(), std::placeholders::_1, amplitude));
+
     return perlinMap;
 }
