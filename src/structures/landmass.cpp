@@ -16,9 +16,9 @@ namespace
     }
 }
 
-std::vector<float> genLandmasses(unsigned int seed, unsigned int size, float scale, float waterPercentage)
+std::vector<float> genLandmasses(unsigned int seed, unsigned int size, std::array<int, 2> xyCenter, float scale, float waterPercentage)
 {
-    std::vector<float> perlinMapLandWater = generatePerlinMap(seed+3, size, size, 15, 0.005f * scale, 1.2f, 1.0f, 0.8f);
+    std::vector<float> perlinMapLandWater = generatePerlinMap(seed+3, size, size, xyCenter[0], xyCenter[1], 15, 0.005f * scale, 1.2f, 1.0f, 0.8f);
     
     float minLandmass = *std::min_element(perlinMapLandWater.begin(), perlinMapLandWater.end());
 

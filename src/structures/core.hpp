@@ -1,13 +1,14 @@
 #pragma once
 
 #include <vector>
+#include <array>
 
 class FluxLumina;
 
 class Planet 
 {
 public:
-    Planet(unsigned int sideSize, float waterPercentage, float globalscale = 1.0f, unsigned int seed = 0);
+    Planet(unsigned int sideSize,  const std::array<int, 2>& offsetCoord, float waterPercentage, float globalscale = 1.0f, unsigned int seed = 0);
 
     void initialize();
     void nuke();
@@ -18,7 +19,7 @@ public:
     void bindCallbacks(FluxLumina& engine);
     void move(float x, float y);
     void zoom(float factor);
-    std::array<float, 2> getOffset() const;
+    const std::array<int, 2>& getChunkPosition() const;
 
     std::array<unsigned int, 2> getDimensions() const;
 
@@ -37,21 +38,21 @@ private:
     void genPlanetLandmasses(int seedOffset);
     std::vector<float> _mapLandWater;
     std::vector<float> _mapLandWaterFilter;
-    float _LandWater_Weight = 1.0f;
+    float _LandWater_Weight;
     // LF Slope
     void genPlanetLFSlope(int seedOffset);
     std::vector<float> _mapSlopeBase;
     std::vector<float> _mapSlope;
-    float _SlopeBase_Weight = 1.0f;
+    float _SlopeBase_Weight;
     // Moutains
     void genPlanetMountains(int seedOffset);
     std::vector<float> _mapMountainsBase;
     std::vector<float> _mapMountains;
-    float _Mountains_Weight = 1.0f;
+    float _Mountains_Weight;
     // Roughness
     void genPlanetRugged(int seedOffset);
     std::vector<float> _mapRugged;
-    float _Rugged_Weight = 1.0f;
+    float _Rugged_Weight;
 
     // Resulting Output
     std::vector<float> _planet;
@@ -59,9 +60,9 @@ private:
     // Auxiliary components
     unsigned int _seed;
     unsigned int _mapSideSize;
+    std::array<int, 2> _worldGridPosition;
+
     float _waterPercentage;
     float _globalscale;
-    float _hOffset; 
-    float _vOffset;
     unsigned int _windowSideSize;
 };

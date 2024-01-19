@@ -14,15 +14,19 @@
 #include "structures/mountains.hpp"
 #include "structures/roughness.hpp"
 
-Planet::Planet(unsigned int sideSize, float waterPercentage, float globalscale, unsigned int seed) :
+Planet::Planet(unsigned int sideSize, const std::array<int, 2>& offsetCoords ,float waterPercentage, float globalscale, unsigned int seed) :
     _seed(seed),
     _mapSideSize(sideSize),
     _waterPercentage(waterPercentage),
     _globalscale(globalscale),
-    _hOffset(0.0f),
-    _vOffset(0.0f)
+    _worldGridPosition(offsetCoords)
 {
     initialize();
+
+    _LandWater_Weight = 10.0f;
+    _SlopeBase_Weight = 15.0f;
+    _Mountains_Weight = 5.0f;
+    _Rugged_Weight = 1.0f;
 }
 
 void Planet::initialize()
@@ -118,18 +122,19 @@ void Planet::zoom(float factor)
 
 void Planet::move(float x, float y)
 {
-    _hOffset += x;
-    _vOffset += y;
+    // _hOffset += x;
+    // _vOffset += y;
 }
 
-std::array<float, 2> Planet::getOffset() const
+const std::array<int, 2>& Planet::getChunkPosition() const
 {
-    return {_hOffset, _vOffset};
+    return _worldGridPosition;
 }
 
 std::array<unsigned int, 2> Planet::getDimensions() const
 {
-    return {_mapSideSize, _mapSideSize};
+    std::array<unsigned int, 2> result({_mapSideSize, _mapSideSize});
+    return result;
 }
 
 /////// TERRAIN GENERATION ///////
@@ -137,7 +142,10 @@ std::array<unsigned int, 2> Planet::getDimensions() const
 // Mountains
 void Planet::genPlanetLandmasses(int seedOffset)
 {
-    _mapLandWater = genLandmasses(_seed+seedOffset, _mapSideSize, _globalscale, _waterPercentage);
+    int size = static_cast<int>(_mapSideSize);
+    std::array<int, 2> squareCenter = {_worldGridPosition[0] * size, _worldGridPosition[1] * size};
+
+    _mapLandWater = genLandmasses(_seed+seedOffset, _mapSideSize, _worldGridPosition, _globalscale, _waterPercentage);
 
     _mapLandWaterFilter = _mapLandWater;
 
@@ -154,7 +162,9 @@ void Planet::setLandWaterWeight(float weight)
 // LF Slope
 void Planet::genPlanetLFSlope(int seedOffset)
 {
-    _mapSlopeBase = genLandLFDetail(_seed+seedOffset, _mapSideSize, _globalscale);
+    int size = static_cast<int>(_mapSideSize);
+    std::array<int, 2> squareCenter = {_worldGridPosition[0] * size, _worldGridPosition[1] * size};
+    _mapSlopeBase = genLandLFDetail(_seed+seedOffset, _mapSideSize, squareCenter, _globalscale);
 
     _mapSlope = _mapSlopeBase;
 
@@ -169,7 +179,9 @@ void Planet::setSlopeWeight(float weight)
 // Mountains
 void Planet::genPlanetMountains(int seedOffset)
 {
-    _mapMountainsBase = genMountains(_seed+seedOffset, _mapSideSize, _globalscale);
+    int size = static_cast<int>(_mapSideSize);
+    std::array<int, 2> squareCenter = {_worldGridPosition[0] * size, _worldGridPosition[1] * size};
+    _mapMountainsBase = genMountains(_seed+seedOffset, _mapSideSize, squareCenter, _globalscale);
 
     _mapMountains = _mapMountainsBase;
 
@@ -196,7 +208,9 @@ void Planet::setMountainsWeight(float weight)
 // Roughness
 void Planet::genPlanetRugged(int seedOffset)
 {
-    _mapRugged = genRoughness(_seed+seedOffset, _mapSideSize, _globalscale);
+    int size = static_cast<int>(_mapSideSize);
+    std::array<int, 2> squareCenter = {_worldGridPosition[0] * size, _worldGridPosition[1] * size};
+    _mapRugged = genRoughness(_seed+seedOffset, _mapSideSize, squareCenter, _globalscale);
 
     float max = *std::max_element(_mapMountainsBase.begin(), _mapMountainsBase.end());
 
