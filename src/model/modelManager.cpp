@@ -72,14 +72,14 @@ modelManager::modelManager(FluxLumina* engine) :
 }
 
 
-void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, unsigned int sideLength, const std::vector<float>& data)
+void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, unsigned int sideLength, const std::vector<float>& data, float global_scale)
 {
     unsigned int N = sideLength;
 
    // Create an N by N grid of vertices in the XZ plane
     std::vector<std::array<float,3>> vertices;
 
-    float hScale = 1.0f;
+    float hScale = 1.0f / global_scale;
 
     for(int i(0); i < N; ++i)
     {
@@ -182,9 +182,9 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
     boost::uuids::uuid modelID = _engine->create_Model(vertices, indices, colors, "Basic");
 
     _engine->setPosition(modelID, {
-            static_cast<float>(worldTileCoordinates[0] * sideLength) * hScale,
+            static_cast<float>(worldTileCoordinates[0] * (sideLength-1)) * hScale,
             0.0f, 
-            static_cast<float>(worldTileCoordinates[1] * sideLength) * hScale
+            static_cast<float>(worldTileCoordinates[1] * (sideLength-1)) * hScale
     });
 
     _generatedChunks[worldTileCoordinates] = modelID;

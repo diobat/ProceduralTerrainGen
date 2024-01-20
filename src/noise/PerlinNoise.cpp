@@ -8,7 +8,7 @@ std::vector<float> generatePerlinNoise(unsigned int seed, unsigned int width, un
 
     auto nPerlin = FastNoise::New<FastNoise::Perlin>();
     
-    nPerlin->GenUniformGrid2D(perlinMap.data(), yCenter * width , xCenter * height , width, height, frequency, seed);
+    nPerlin->GenUniformGrid2D(perlinMap.data(), yCenter * (width+2), xCenter * (height+2), width, height, frequency, seed);
 
     std::transform(perlinMap.begin(), perlinMap.end(), perlinMap.begin(),
                 std::bind(std::multiplies<float>(), std::placeholders::_1, amplitude));

@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     FluxLumina engine(E_RenderStrategy::ForwardShading);
 
     // Camera setup
-    engine.create_Camera(70.0f, 10.0f, 0.001f); 
+    engine.create_Camera(70.0f, 100.0f, 0.001f); 
 
     // Skybox setup
     engine.create_Skybox({
@@ -32,19 +32,19 @@ int main(int argc, char** argv)
 
     // Generate all necessary Perlin noise maps
     unsigned int N = 700;       // Size of the side of the map
-    float global_scale = 1.0f;
+    float global_scale = 0.6f;
 
-    chunkManager chkMgr(N, 0.7f, global_scale, 0);
+    chunkManager chkMgr(N, 0.7f, global_scale, 560);
     modelManager mdlMgr(&engine);
 
-    int gridSize = 3;   
+    int gridSize = 5;   
 
     for(int x(-1); x < gridSize; ++x)
     {
         for(int y(-1); y < gridSize; ++y)
         {
             chkMgr.generateChunk(x, y);
-            mdlMgr.generateModel({x, y}, N, chkMgr.getChunkData(x, y));
+            mdlMgr.generateModel({x, y}, N, chkMgr.getChunkData(x, y), global_scale);
         }
     }
 

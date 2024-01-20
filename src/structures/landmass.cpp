@@ -6,6 +6,7 @@
 
 namespace
 {
+
     float findPercentile(std::vector<float> perlinMap, float percentile)
     {
         std::sort(perlinMap.begin(), perlinMap.end());
@@ -14,26 +15,29 @@ namespace
 
         return perlinMap[index];
     }
+
+    float waterLevelOffset = 0.0f;
+
+    void findOffset(const std::vector<float>& sample, float waterPercentage)
+    {
+        std::vector<float> sampleCopy(sample);
+
+        waterLevelOffset = findPercentile(sampleCopy, waterPercentage);
+    }
+
 }
 
 std::vector<float> genLandmasses(unsigned int seed, unsigned int size, std::array<int, 2> xyCenter, float scale, float waterPercentage)
 {
     std::vector<float> perlinMapLandWater = generatePerlinMap(seed+3, size, size, xyCenter[0], xyCenter[1], 15, 0.005f * scale, 1.2f, 1.0f, 0.8f);
     
-    float minLandmass = *std::min_element(perlinMapLandWater.begin(), perlinMapLandWater.end());
+    if(waterLevelOffset == 0.0f)
+    {
+        findOffset(perlinMapLandWater, waterPercentage);
+    }
 
     std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-            std::bind(std::plus<float>(), std::placeholders::_1, -minLandmass));
-
-    float maxLandmass = *std::max_element(perlinMapLandWater.begin(), perlinMapLandWater.end());
-
-    std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-            std::bind(std::divides<float>(), std::placeholders::_1, maxLandmass));
-
-    float percentile = findPercentile(perlinMapLandWater, waterPercentage);
-
-    std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-        std::bind(std::plus<float>(), std::placeholders::_1, -percentile));
+        std::bind(std::plus<float>(), std::placeholders::_1, -waterLevelOffset));
 
     std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
                 [](float val) {return std::clamp(val, 0.0f, 1.0f);}
