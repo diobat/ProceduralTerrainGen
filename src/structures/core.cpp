@@ -21,23 +21,10 @@ Planet::Planet(unsigned int sideSize, const std::array<int, 2>& offsetCoords ,fl
     _globalscale(globalscale),
     _worldGridPosition(offsetCoords)
 {
-    initialize();
-
-    _LandWater_Weight = 10.0f;
-    _SlopeBase_Weight = 15.0f;
-    _Mountains_Weight = 9.0f;
-    _Rugged_Weight = 1.0f;
-}
-
-void Planet::initialize()
-{
-    if(_seed == 0)
-    {
-        std::random_device rd;
-        std::mt19937 rng(rd()); // Mersenne Twister random number generator
-        std::uniform_int_distribution<unsigned int> dist(0, std::numeric_limits<unsigned int>::max());
-        unsigned int _seed = dist(rng);
-    }
+    _LandWater_Weight = 5.0f * globalscale;
+    _SlopeBase_Weight = 0.5f * globalscale;
+    _Mountains_Weight = 2.5f * globalscale;
+    _Rugged_Weight = 1.0f * globalscale;
 }
 
 /////// INTERACTION ///////
@@ -56,7 +43,7 @@ std::vector<float> Planet::regenerate()
     genPlanetLandmasses(0);
     genPlanetLFSlope(1);
     genPlanetMountains(2);
-    genPlanetRugged(3);
+    //genPlanetRugged(3);
 
     return getTerrain();
 }
@@ -77,16 +64,18 @@ const std::vector<float>& Planet::bake()
     std::transform(_mountainsWeighted.begin(), _mountainsWeighted.end(), _mountainsWeighted.begin(), 
         std::bind(std::multiplies<float>(), std::placeholders::_1, _Mountains_Weight));
 
-    std::vector<float> _ruggedWeighted = _mapRugged;
-    std::transform(_ruggedWeighted.begin(), _ruggedWeighted.end(), _ruggedWeighted.begin(), 
-        std::bind(std::multiplies<float>(), std::placeholders::_1, _Rugged_Weight));
+    // std::vector<float> _ruggedWeighted = _mapRugged;
+    // std::transform(_ruggedWeighted.begin(), _ruggedWeighted.end(), _ruggedWeighted.begin(), 
+    //     std::bind(std::multiplies<float>(), std::placeholders::_1, _Rugged_Weight));
 
     _planet.resize(_mapSideSize*_mapSideSize);
     for(size_t i = 0; i < _mapSideSize*_mapSideSize; ++i) {
-        _planet[i] = _landWaterWeighted[i] + _slopeWeighted[i] + _mountainsWeighted[i] + _ruggedWeighted[i];
-        // _planet[i] =  _mountainsWeighted[i] * 3.0f;
-        // _planet[i] =  _mapMountainsBase[i] * 3.0f;
+        _planet[i] = _landWaterWeighted[i] + _slopeWeighted[i] + _mountainsWeighted[i];// + _ruggedWeighted[i];
     }
+
+    std::transform(_planet.begin(), _planet.end(), _planet.begin(),
+                [](float val) {return std::clamp(val, 0.0f, 500.0f);}
+                );
 
     return _planet;
 }
@@ -179,7 +168,12 @@ void Planet::genPlanetMountains(int seedOffset)
 
     _mapMountains = _mapMountainsBase;
 
-    for(int i(0); i < 1; ++i)
+    // max value of slope base
+    float max = *std::max_element(_mapSlopeBase.begin(), _mapSlopeBase.end());
+    // max value of mountains base
+    float max2 = *std::max_element(_mapMountainsBase.begin(), _mapMountainsBase.end());
+
+    for(int i(0); i < 2; ++i)
     {
     std::transform(_mapSlopeBase.begin(), _mapSlopeBase.end(), _mapMountains.begin(), _mapMountains.begin(), std::multiplies<float>());
     }
@@ -200,7 +194,7 @@ void Planet::genPlanetRugged(int seedOffset)
 
     float max = *std::max_element(_mapMountainsBase.begin(), _mapMountainsBase.end());
 
-    for(int i(0); i < 3; ++i)
+    for(int i(0); i < 2; ++i)
     {
     std::transform(_mapMountainsBase.begin(), _mapMountainsBase.end(), _mapRugged.begin(), _mapRugged.begin(), std::multiplies<float>());
     }

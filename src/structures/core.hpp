@@ -10,7 +10,6 @@ class Planet
 public:
     Planet(unsigned int sideSize,  const std::array<int, 2>& offsetCoord, float waterPercentage, float globalscale = 1.0f, unsigned int seed = 0);
 
-    void initialize();
     void nuke();
 
     const std::vector<float>& bake();                   // Bake the planet and return the height values

@@ -6,7 +6,6 @@
 
 namespace
 {
-
     float divisor = 0.0f;
 
     void findPercentile(std::vector<float> perlinMap, float percentile)
@@ -21,7 +20,7 @@ namespace
 
 std::vector<float> genLandLFDetail(unsigned int seed, unsigned int size, std::array<int, 2> xyCenter, float scale) {
 
-    std::vector<float> perlinMapSlopeNormalized = generatePerlinMap(seed, size, size, xyCenter[0], xyCenter[1], 3, 0.009f * scale, 1.5f, 1.0f, 0.85f);
+    std::vector<float> perlinMapSlopeNormalized = generatePerlinMap(seed, size, size, xyCenter[0], xyCenter[1], 4, 0.004f / scale, 1.5f, 1.0f, 0.85f);
 
     std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapSlopeNormalized.begin(),
                    [](float val) { 
@@ -29,6 +28,13 @@ std::vector<float> genLandLFDetail(unsigned int seed, unsigned int size, std::ar
                     return value * value;
                     }
     );
+
+    // // find max value of slope base
+    // auto max = std::max_element(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end());
+
+    // // divide every member by twice that value
+    // std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapSlopeNormalized.begin(),
+    //                std::bind(std::divides<float>(), std::placeholders::_1, *max * 2.0f));
 
     // To accentuate slopes, we square the map and then normalize it
 
