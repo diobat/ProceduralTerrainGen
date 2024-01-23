@@ -45,8 +45,6 @@ std::vector<float> genPM_FractalRidge(unsigned int seed, unsigned int width, uns
         std::transform(perlinMap.begin(), perlinMap.end(), currentOctave.begin(),
                     perlinMap.begin(), std::plus<float>());
 
-
-
         amplitude *= persistence;
         frequency *= lacunarity;
     }

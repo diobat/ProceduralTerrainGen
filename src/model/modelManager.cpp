@@ -79,7 +79,7 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
    // Create an N by N grid of vertices in the XZ plane
     std::vector<std::array<float,3>> vertices;
 
-    float hScale = 1.0f / global_scale;
+    float hScale = global_scale;
 
     for(int i(0); i < N; ++i)
     {
@@ -143,12 +143,11 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
 
     std::vector<std::array<float,3>> colors;
 
-    std::array<float,3> color_green = {0.31f, 0.65f, 0.27f};
+    std::array<float,3> color_green = {0.41f, 0.8f, 0.37f};
     std::array<float,3> color_dark_green = {0.11f, 0.35f, 0.07f};
     std::array<float,3> color_gray = {0.43f, 0.45f, 0.45f};
     std::array<float,3> color_white = {0.95f, 0.95f, 0.95f};
     std::array<float,3> color_blue = {0.0f, 0.18f, 0.30f};
-
 
     populateColorTable(color_green, color_dark_green);
 
@@ -161,15 +160,11 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
         {
             colors.push_back(color_blue);
         }
-        else if (y < 0.5f * hScale)
+        else if (y < 26.0f * hScale)
         {
-            colors.push_back(color_green);
+            colors.push_back(getColor((y) / (26.0f * hScale)));
         }
-        else if (y < 7.0f * hScale)
-        {
-            colors.push_back(getColor((y) / (7.0f * hScale)));
-        }
-        else if (y < 8.0f * hScale)
+        else if (y < 30.0f * hScale)
         {
             colors.push_back(color_gray);
         }
@@ -178,15 +173,33 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
             colors.push_back(color_white);
         }
     }
-    
-    boost::uuids::uuid modelID = _engine->create_Model(vertices, indices, colors, "Basic");
+    boost::uuids::uuid modelID = _engine->create_Model(vertices, indices, colors, "map");
 
-    _engine->setPosition(modelID, {
-            static_cast<float>(worldTileCoordinates[0] * (sideLength-1)) * hScale,
+    int sideLengthInt = static_cast<int>(sideLength);
+
+    std::array<float, 3> modelPosition = {
+            static_cast<float>(worldTileCoordinates[0] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale,
             0.0f, 
-            static_cast<float>(worldTileCoordinates[1] * (sideLength-1)) * hScale
-    });
+            static_cast<float>(worldTileCoordinates[1] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale
+    };
 
-    _generatedChunks[worldTileCoordinates] = modelID;
 
+    _engine->setPosition(modelID, modelPosition);
+
+    _generatedChunkModels[worldTileCoordinates] = modelID;
+}
+
+bool modelManager::modelExists(const std::array<int, 2>& worldTileCoordinates) const
+{
+    return _generatedChunkModels.find(worldTileCoordinates) != _generatedChunkModels.end();
+}
+
+boost::uuids::uuid modelManager::getModel(const std::array<int, 2>& worldTileCoordinates) const
+{
+    return _generatedChunkModels.at(worldTileCoordinates);
+}
+
+const std::unordered_map<std::array<int, 2>, boost::uuids::uuid, ArrayHash>& modelManager::allModels() const
+{
+    return _generatedChunkModels;
 }

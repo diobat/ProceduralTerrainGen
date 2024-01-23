@@ -1,12 +1,18 @@
 #include "geometry/chunkManager.hpp"
+#include <FluxLumina.hpp>
 
 #include <random>
+#include <cmath>
+#include <thread>
 
-chunkManager::chunkManager(unsigned int sideSize, float waterPercentage, float globalscale, unsigned int seed ) :
+
+chunkManager::chunkManager(FluxLumina* engine, unsigned int sideSize, float waterPercentage, float globalscale, unsigned int seed ) :
+    _engine(engine),
     _chunkSize(sideSize),
     _globalScale(globalscale),
     _waterPercentage(waterPercentage),
-    _seed(seed)
+    _seed(seed),
+    _mdlMgr(engine)
 {
     if (_seed == 0)
     {
@@ -21,16 +27,50 @@ chunkManager::~chunkManager()
 
 void chunkManager::generateChunk(int x, int y)
 {
-    chunkData newChunk(this, {x, y});
-    _generatedChunks[{x, y}] = std::make_unique<chunkData>(newChunk);
+    _generatedChunks[{x, y}] = std::make_unique<chunkData>(this, std::array<int, 2>({x, y}));
     _generatedChunks[{x, y}]->generateChunkData();
+    _mdlMgr.generateModel({x, y}, _chunkSize, getChunkData(x, y), _globalScale);
 }
 
 std::vector<float> chunkManager::getChunkData(int x, int y)
 {
-    return _generatedChunks[{x, y}]->getChunkData();
+    return _generatedChunks[{x, y}]->getChunkData();   
 }
 
+void chunkManager::positionCallback()
+{
+    std::array<float, 3> position = _engine->getCameraPosition();
+
+    std::array<int, 2> chunkPosition = {
+        static_cast<int>(std::round((position[0]/_globalScale) / _chunkSize)),
+        static_cast<int>(std::round((position[2]/_globalScale) / _chunkSize))
+        };
+
+
+    for (const auto& model : _mdlMgr.allModels())
+    {
+        _engine->setEnabled(model.second, false);
+    }
+
+    int chunkRadius = 3;
+
+    for (int x = chunkPosition[0] - chunkRadius; x <= chunkPosition[0] + chunkRadius; ++x)
+    {
+        for (int y = chunkPosition[1] - chunkRadius; y <= chunkPosition[1] + chunkRadius; ++y)
+        {
+            if (_generatedChunks.find({x, y}) == _generatedChunks.end())
+            {
+                _generatedChunks[{x, y}] = nullptr;
+                std::thread worker(&chunkManager::generateChunk, this, x, y);
+                worker.detach();
+            }
+            else if(_mdlMgr.modelExists({x, y}))
+            {
+                _engine->setEnabled(_mdlMgr.getModel({x, y}), true);
+            }
+        }
+    }
+};
 
 unsigned int chunkManager::getChunkSize() const
 {
@@ -41,7 +81,6 @@ float chunkManager::getGlobalScale() const
 {
     return _globalScale;
 }
-
 
 float chunkManager::getWaterPercentage() const
 {
