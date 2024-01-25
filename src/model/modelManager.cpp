@@ -7,7 +7,7 @@ namespace
 {
     std::array<float, 3> normalizeVector(const std::array<float, 3>& a) 
     {
-        std::array<float, 3> result;
+        std::array<float, 3> result(a);
         // Calculate the magnitude of the vector
         float magnitude = sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
 
@@ -79,7 +79,7 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
    // Create an N by N grid of vertices in the XZ plane
     std::vector<std::array<float,3>> vertices;
 
-    float hScale = global_scale;
+    float hScale = global_scale / 10.0f;
 
     for(int i(0); i < N; ++i)
     {
@@ -96,6 +96,15 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
     {
         for(int j(0); j < N - 1; ++j)
         {
+            // If all the vertices heights are 0, skip this square
+            if (vertices[i * N + j][1] == 0.0f &&
+                vertices[i * N + j + 1][1] == 0.0f &&
+                vertices[(i + 1) * N + j][1] == 0.0f &&
+                vertices[(i + 1) * N + j + 1][1] == 0.0f)
+            {
+                continue;
+            }
+
             indices.push_back(i * N + j);
             indices.push_back(i * N + j + 1);
             indices.push_back((i + 1) * N + j);
@@ -173,20 +182,66 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
             colors.push_back(color_white);
         }
     }
-    boost::uuids::uuid modelID = _engine->create_Model(vertices, indices, colors, "map");
 
+    // Generate a model for the water
+    std::vector<std::array<float,3>> waterVertices;
+    std::vector<std::array<float,3>> waterNormals;
+    std::vector<unsigned int> waterIndices;
+    std::vector<std::array<float,3>> waterColors;
+
+    float sideLengthFloat = static_cast<float>(sideLength);
+
+    waterVertices.push_back({0.0f * hScale * sideLengthFloat, 0.0f, 0.0f* hScale * sideLengthFloat});
+    waterVertices.push_back({0.0f * hScale * sideLengthFloat, 0.0f, 1.0f* hScale * sideLengthFloat});
+    waterVertices.push_back({1.0f * hScale * sideLengthFloat, 0.0f, 0.0f* hScale * sideLengthFloat});
+    waterVertices.push_back({1.0f * hScale * sideLengthFloat, 0.0f, 1.0f* hScale * sideLengthFloat});
+
+    waterIndices.push_back(0);
+    waterIndices.push_back(1);
+    waterIndices.push_back(2);
+
+    waterIndices.push_back(1);
+    waterIndices.push_back(3);
+    waterIndices.push_back(2);
+
+
+    waterNormals.push_back({0.0f, 1.0f, 0.0f});
+    waterNormals.push_back({0.0f, 1.0f, 0.0f});
+    waterNormals.push_back({0.0f, 1.0f, 0.0f});
+    waterNormals.push_back({0.0f, 1.0f, 0.0f});
+
+    waterColors.push_back({0.0f, 0.0f, 0.5f});
+    waterColors.push_back({0.0f, 0.0f, 0.5f});
+    waterColors.push_back({0.0f, 0.0f, 0.5f});
+    waterColors.push_back({0.0f, 0.0f, 0.5f});
+
+    // Calculate the world position of the model
     int sideLengthInt = static_cast<int>(sideLength);
-
     std::array<float, 3> modelPosition = {
-            static_cast<float>(worldTileCoordinates[0] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale,
-            0.0f, 
-            static_cast<float>(worldTileCoordinates[1] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale
+        static_cast<float>(worldTileCoordinates[0] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale,
+        0.0f, 
+        static_cast<float>(worldTileCoordinates[1] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale
     };
 
+    std::array<float, 3> waterModelPosition = {
+        static_cast<float>(worldTileCoordinates[0] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale,
+        -1.0f, 
+        static_cast<float>(worldTileCoordinates[1] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale
+    };
 
-    _engine->setPosition(modelID, modelPosition);
+    boost::uuids::uuid waterModelID = _engine->create_Model(waterVertices, waterNormals, waterIndices, waterColors, "water");
+    _engine->setPosition(waterModelID, waterModelPosition);
 
-    _generatedChunkModels[worldTileCoordinates] = modelID;
+    if(indices.size() != 0)
+    {    
+        boost::uuids::uuid modelID = _engine->create_Model(vertices, normals, indices, colors, "map");
+        _engine->setPosition(modelID, modelPosition);
+        _generatedChunkModels[worldTileCoordinates] = modelID;
+    }
+    else
+    {
+        _generatedChunkModels[worldTileCoordinates] = waterModelID;
+    }
 }
 
 bool modelManager::modelExists(const std::array<int, 2>& worldTileCoordinates) const

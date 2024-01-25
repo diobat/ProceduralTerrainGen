@@ -28,7 +28,7 @@ namespace
 
 std::vector<float> genLandmasses(unsigned int seed, unsigned int size, std::array<int, 2> xyCenter, float scale, float waterPercentage)
 {
-    std::vector<float> perlinMapLandWater = generatePerlinMap(seed+3, size, size, xyCenter[0], xyCenter[1], 7, 0.005f / scale, 1.2f, 1.0f, 0.85f);
+    std::vector<float> perlinMapLandWater = generatePerlinMap(seed+3, size, size, xyCenter[0], xyCenter[1], 12, 0.005f / scale, 1.2f, 1.0f, 0.85f);
     
     if(waterLevelOffset == 0.0f)
     {

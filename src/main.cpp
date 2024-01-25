@@ -31,17 +31,17 @@ int main(int argc, char** argv)
     float zoom_level = 10.0f;
 
     // Camera setup
-    engine.create_Camera(70.0f, 10.0f * zoom_level, 0.001f); 
+    engine.create_Camera(70.0f, zoom_level, 0.001f); 
     engine.setCameraPosition({0.0f, 10.0f * zoom_level, 0.0f});
 
     // Generate all necessary Perlin noise maps
-    chunkManager chkMgr(&engine, N, 0.7f, zoom_level, 0);
+    chunkManager chkMgr(&engine, N, 0.65f, zoom_level, 0);
 
     bool GRT = false;   // Generate Real Time
 
     if(!GRT)
     {
-        int gridSize = 3;   
+        int gridSize = 5;   
 
         for(int x(-gridSize/2); x <= gridSize/2; ++x)
         {

@@ -23,7 +23,7 @@ Planet::Planet(unsigned int sideSize, const std::array<int, 2>& offsetCoords ,fl
 {
     _LandWater_Weight = 5.0f * globalscale;
     _SlopeBase_Weight = 0.5f * globalscale;
-    _Mountains_Weight = 2.5f * globalscale;
+    _Mountains_Weight = 5.0f * globalscale;
     _Rugged_Weight = 1.0f * globalscale;
 }
 
@@ -173,9 +173,9 @@ void Planet::genPlanetMountains(int seedOffset)
     // max value of mountains base
     float max2 = *std::max_element(_mapMountainsBase.begin(), _mapMountainsBase.end());
 
-    for(int i(0); i < 2; ++i)
+    for(int i(0); i < 1; ++i)
     {
-    std::transform(_mapSlopeBase.begin(), _mapSlopeBase.end(), _mapMountains.begin(), _mapMountains.begin(), std::multiplies<float>());
+        std::transform(_mapSlope.begin(), _mapSlope.end(), _mapMountains.begin(), _mapMountains.begin(), std::multiplies<float>());
     }
 
     std::transform(_mapLandWaterFilter.begin(), _mapLandWaterFilter.end(), _mapMountains.begin(), _mapMountains.begin(), std::multiplies<float>());
