@@ -13,7 +13,7 @@ chunkManager::chunkManager(FluxLumina* engine, unsigned int sideSize, float wate
     _globalScale(globalscale),
     _waterPercentage(waterPercentage),
     _seed(seed),
-    _mdlMgr(engine)
+    _mdlMgr(engine, this)
 {
     if (_seed == 0)
     {
@@ -33,7 +33,12 @@ void chunkManager::generateChunk(int x, int y)
     _mdlMgr.generateModel({x, y}, _chunkSize, getChunkData(x, y), _globalScale);
 }
 
-std::vector<float> chunkManager::getChunkData(int x, int y)
+std::unique_ptr<Planet>& chunkManager::getChunk(int x, int y)
+{
+    return _generatedChunks[{x, y}];
+}
+
+const std::vector<float>& chunkManager::getChunkData(int x, int y)
 {
     return _generatedChunks[{x, y}]->getTerrain();   
 }
@@ -46,7 +51,6 @@ void chunkManager::positionCallback()
         static_cast<int>(std::round((position[0]/_globalScale) / _chunkSize)),
         static_cast<int>(std::round((position[2]/_globalScale) / _chunkSize))
         };
-
 
     for (const auto& model : _mdlMgr.allModels())
     {

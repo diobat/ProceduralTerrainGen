@@ -35,13 +35,13 @@ int main(int argc, char** argv)
     engine.setCameraPosition({0.0f, 10.0f * zoom_level, 0.0f});
 
     // Generate all necessary Perlin noise maps
-    chunkManager chkMgr(&engine, N, 0.65f, zoom_level, 0);
+    chunkManager chkMgr(&engine, N, 0.55f, zoom_level, 0);
 
     bool GRT = false;   // Generate Real Time
 
     if(!GRT)
     {
-        int gridSize = 5;   
+        int gridSize = static_cast<int>(std::ceil(zoom_level/2.0f)); 
 
         for(int x(-gridSize/2); x <= gridSize/2; ++x)
         {

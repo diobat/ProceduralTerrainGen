@@ -20,7 +20,7 @@ namespace
 
 std::vector<float> genLandLFDetail(unsigned int seed, unsigned int size, std::array<int, 2> xyCenter, float scale) {
 
-    std::vector<float> perlinMapSlopeNormalized = generatePerlinMap(seed, size, size, xyCenter[0], xyCenter[1], 4, 0.004f / scale, 1.5f, 1.0f, 0.85f);
+    std::vector<float> perlinMapSlopeNormalized = generatePerlinMap(seed, size, size, xyCenter[0], xyCenter[1], 2, 0.02f / scale, 1.5f, 1.0f, 0.85f);
 
     std::transform(perlinMapSlopeNormalized.begin(), perlinMapSlopeNormalized.end(), perlinMapSlopeNormalized.begin(),
                    [](float val) { 

@@ -15,9 +15,10 @@ public:
     chunkManager(FluxLumina* engine, unsigned int sideSize, float waterPercentage, float globalscale = 1.0f, unsigned int seed = 0);
     ~chunkManager();
 
+    std::unique_ptr<Planet>& getChunk(int x, int y);
     void generateChunk(int x, int y);
 
-    std::vector<float> getChunkData(int x, int y);
+    const std::vector<float>& getChunkData(int x, int y);
 
     void positionCallback();
 
@@ -25,7 +26,6 @@ public:
     float getGlobalScale() const;
     float getWaterPercentage() const;
     float getSeed() const;
-
 
 private:
     std::unordered_map<std::array<int, 2>, std::unique_ptr<Planet>, ArrayHash> _generatedChunks;

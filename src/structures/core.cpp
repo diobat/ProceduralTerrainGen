@@ -23,7 +23,7 @@ Planet::Planet(unsigned int sideSize, const std::array<int, 2>& offsetCoords ,fl
 {
     _LandWater_Weight = 5.0f * globalscale;
     _SlopeBase_Weight = 0.5f * globalscale;
-    _Mountains_Weight = 5.0f * globalscale;
+    _Mountains_Weight = 3.0f * globalscale;
     _Rugged_Weight = 1.0f * globalscale;
 }
 
@@ -71,6 +71,7 @@ const std::vector<float>& Planet::bake()
     _planet.resize(_mapSideSize*_mapSideSize);
     for(size_t i = 0; i < _mapSideSize*_mapSideSize; ++i) {
         _planet[i] = _landWaterWeighted[i] + _slopeWeighted[i] + _mountainsWeighted[i];// + _ruggedWeighted[i];
+        // _planet[i] =_slopeWeighted[i];
     }
 
     std::transform(_planet.begin(), _planet.end(), _planet.begin(),
@@ -113,7 +114,7 @@ void Planet::zoom(float factor)
 void Planet::move(float x, float y)
 {
     // _hOffset += x;
-    // _vOffset += y;
+    // _vOffset += y-+;
 }
 
 const std::array<int, 2>& Planet::getChunkPosition() const

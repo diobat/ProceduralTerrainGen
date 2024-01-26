@@ -28,6 +28,11 @@ public:
     void setMountainsWeight(float weight);
     void setRuggedWeight(float weight);
 
+    // Terrain getters
+    const std::vector<float>& getLandWater() const { return _mapLandWater; };
+    const std::vector<float>& getSlope() const { return _mapSlopeBase; };
+    const std::vector<float>& getMountains() const { return _mapMountainsBase; };
+
 private:
 
     std::vector<float> regenerate();

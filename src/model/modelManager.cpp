@@ -1,4 +1,5 @@
 #include "model/modelManager.hpp"
+#include "geometry/chunkManager.hpp"
 #include <FluxLumina.hpp>
 
 #include <algorithm>
@@ -63,10 +64,9 @@ namespace
     }
 }
 
-
-
-modelManager::modelManager(FluxLumina* engine) :
-    _engine(engine)
+modelManager::modelManager(FluxLumina* engine, chunkManager* chunkMgr) :
+    _engine(engine),
+    _chunkMgr(chunkMgr)
 {
     ;
 }
@@ -150,38 +150,21 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
         normals[i] = normalizeVector(normals[i]);
     }
 
-    std::vector<std::array<float,3>> colors;
+    std::vector<std::array<float,3>> colors = calculateColor(worldTileCoordinates, sideLength, hScale);
 
-    std::array<float,3> color_green = {0.41f, 0.8f, 0.37f};
-    std::array<float,3> color_dark_green = {0.11f, 0.35f, 0.07f};
-    std::array<float,3> color_gray = {0.43f, 0.45f, 0.45f};
-    std::array<float,3> color_white = {0.95f, 0.95f, 0.95f};
-    std::array<float,3> color_blue = {0.0f, 0.18f, 0.30f};
+    // std::array<float,3> color_green = {0.41f, 0.8f, 0.37f};
+    // std::array<float,3> color_dark_green = {0.11f, 0.35f, 0.07f};
+    // std::array<float,3> color_gray = {0.43f, 0.45f, 0.45f};
+    // std::array<float,3> color_white = {0.95f, 0.95f, 0.95f};
+    // std::array<float,3> color_blue = {0.0f, 0.18f, 0.30f};
 
-    populateColorTable(color_green, color_dark_green);
+    // populateColorTable(color_green, color_dark_green);
 
-    for (std::size_t i(0); i < vertices.size(); ++i)
-    {
+    // for (std::size_t i(0); i < vertices.size(); ++i)
+    // {
         
-        float y = vertices[i][1];
 
-        if (y <= 0.0f * hScale)
-        {
-            colors.push_back(color_blue);
-        }
-        else if (y < 26.0f * hScale)
-        {
-            colors.push_back(getColor((y) / (26.0f * hScale)));
-        }
-        else if (y < 30.0f * hScale)
-        {
-            colors.push_back(color_gray);
-        }
-        else
-        {
-            colors.push_back(color_white);
-        }
-    }
+    // }
 
     // Generate a model for the water
     std::vector<std::array<float,3>> waterVertices;
@@ -242,6 +225,56 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
     {
         _generatedChunkModels[worldTileCoordinates] = waterModelID;
     }
+}
+
+std::vector<std::array<float, 3>> modelManager::calculateColor(const std::array<int, 2>& worldTileCoordinates, unsigned int sideLength, float hScale) const
+{
+
+    std::array<float,3> color_green = {0.41f, 0.8f, 0.37f};
+    std::array<float,3> color_dark_green = {0.11f, 0.35f, 0.07f};
+    std::array<float,3> color_gray = {0.43f, 0.45f, 0.45f};
+    std::array<float,3> color_white = {1.0f, 1.0f, 1.0f};
+    std::array<float,3> color_blue = {0.0f, 0.18f, 0.30f};
+    populateColorTable(color_green, color_dark_green);
+
+    std::vector<std::array<float, 3>> colors;
+
+    std::unique_ptr<Planet>& chunk = _chunkMgr->getChunk(worldTileCoordinates[0], worldTileCoordinates[1]);
+
+    std::vector<float> LandWater = chunk->getLandWater();
+    std::vector<float> Slope = chunk->getSlope();
+    std::vector<float> Mountains = chunk->getMountains();
+
+    
+    for(unsigned int i(0); i < sideLength * sideLength; ++i)
+    {
+
+        if (LandWater[i] <= 0.0f)
+        {
+            colors.push_back(color_blue);
+        }
+        else if (Mountains[i] > 0.75f && Slope[i] > 0.5f)
+        {
+            colors.push_back(color_white);
+        }
+        else if (Mountains[i] > 0.35f)
+        {
+            if (Slope[i] > 0.5f)
+            {
+                colors.push_back(color_gray);
+            }
+            else
+            {
+                colors.push_back(color_dark_green);
+            }
+        }
+        else
+        {
+            colors.push_back(getColor( std::min(LandWater[i], 0.99f)));
+        }
+    }
+    
+    return colors;
 }
 
 bool modelManager::modelExists(const std::array<int, 2>& worldTileCoordinates) const
