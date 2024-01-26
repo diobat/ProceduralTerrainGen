@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
-#include "geometry/chunkData.hpp"
+#include "structures/core.hpp"    
 #include "util/hashFunc.hpp"
 
 #include "model/modelManager.hpp"     
@@ -28,7 +28,7 @@ public:
 
 
 private:
-    std::unordered_map<std::array<int, 2>, std::unique_ptr<chunkData>, ArrayHash> _generatedChunks;
+    std::unordered_map<std::array<int, 2>, std::unique_ptr<Planet>, ArrayHash> _generatedChunks;
 
     FluxLumina* _engine;
     modelManager _mdlMgr; 

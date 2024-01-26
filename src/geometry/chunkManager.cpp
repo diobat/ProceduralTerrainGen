@@ -1,4 +1,5 @@
 #include "geometry/chunkManager.hpp"
+#include "structures/core.hpp"    
 #include <FluxLumina.hpp>
 
 #include <random>
@@ -27,14 +28,14 @@ chunkManager::~chunkManager()
 
 void chunkManager::generateChunk(int x, int y)
 {
-    _generatedChunks[{x, y}] = std::make_unique<chunkData>(this, std::array<int, 2>({x, y}));
-    _generatedChunks[{x, y}]->generateChunkData();
+    _generatedChunks[{x, y}] = std::make_unique<Planet>(_chunkSize, std::array<int, 2>({x, y}), _waterPercentage, _globalScale, _seed);
+    _generatedChunks[{x, y}]->bake();
     _mdlMgr.generateModel({x, y}, _chunkSize, getChunkData(x, y), _globalScale);
 }
 
 std::vector<float> chunkManager::getChunkData(int x, int y)
 {
-    return _generatedChunks[{x, y}]->getChunkData();   
+    return _generatedChunks[{x, y}]->getTerrain();   
 }
 
 void chunkManager::positionCallback()
