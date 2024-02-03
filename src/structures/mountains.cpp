@@ -8,7 +8,7 @@ std::vector<float> genMountains(unsigned int seed, unsigned int size, std::array
 {
 
     // Mountains everywhere
-    std::vector<float> perlinMapMountains = generatePerlinMap(seed+1, size, size, xyCenter[0], xyCenter[1], 8, 0.1f / scale, 2.0f, 1.0f, 0.55f);
+    std::vector<float> perlinMapMountains = generatePerlinMap(seed+1, size, size, xyCenter[0], xyCenter[1], 10, 0.12f / scale, 2.0f, 1.0f, 0.55f);
   
 
     // To accentuate slopes, we square the map and then normalize it

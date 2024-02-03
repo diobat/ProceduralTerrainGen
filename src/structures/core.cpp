@@ -76,7 +76,7 @@ const std::vector<float>& Planet::bake()
     _planet.resize(_mapSideSize*_mapSideSize);
     for(size_t i = 0; i < _mapSideSize*_mapSideSize; ++i) {
         // _planet[i] = _landWaterWeighted[i] + _slopeWeighted[i] + _mountainsWeighted[i];// + _ruggedWeighted[i];
-        _planet[i] = _mapMountainsBase[i] * 1.5f * _globalscale;
+        _planet[i] = _mapMountainsBase[i] * 100.0f;
     }
 
     std::transform(_planet.begin(), _planet.end(), _planet.begin(),
@@ -84,7 +84,7 @@ const std::vector<float>& Planet::bake()
                 );
 
     HydroEroder eroder(_planet, _mapSideSize);
-    eroder.drop(100000);
+    eroder.drop(400000);
 
     return _planet;
 }

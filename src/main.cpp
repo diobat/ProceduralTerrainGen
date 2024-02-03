@@ -35,7 +35,7 @@ int main(int argc, char** argv)
     engine.setCameraPosition({0.0f, 10.0f * zoom_level, 0.0f});
 
     // Generate all necessary Perlin noise maps
-    chunkManager chkMgr(&engine, N, 0.55f, zoom_level, 0);
+    chunkManager chkMgr(&engine, N, 0.55f, zoom_level, 550);
 
     bool GRT = false;   // Generate Real Time
 

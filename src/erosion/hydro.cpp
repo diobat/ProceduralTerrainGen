@@ -27,11 +27,11 @@ namespace
 HydroEroder::HydroEroder(std::vector<float>& map, unsigned int sidesize)
     : _map(map), 
     _sideSize(sidesize),
-    _erosionRadius(5.0f),
-    _depositionFactor(0.1f),
-    _erosionFactor(0.5f),
+    _erosionRadius(3.0f),
+    _depositionFactor(0.3f),
+    _erosionFactor(0.85f),
     _minimalSlope(0.01f),
-    _inertia(0.025f),
+    _inertia(0.1f),
     _gravity(4.0f)
 {
 
@@ -245,15 +245,15 @@ void HydroEroder::collectSediment(std::array<float, 2> position, WaterDrop& drop
 WaterDrop::WaterDrop(float x, float y)    :
     _position({x, y}),
     _direction({0.0f, 0.0f}),
-    _speed(1.0f),
+    _speed(0.1f),
     _waterMass(1.0f),
     _sedimentMass(0.0f),
-    _ttl(50),
-    _maxCapacity(0.0f),
+    _ttl(30),
+    _maxCapacity(10.0f),
     _capacityFactor(8.0f),
-    _evaporationFactor(0.05f)
+    _evaporationFactor(0.1f)
 {
-    ;
+
 }
 
 void WaterDrop::setDirection(float x, float y)

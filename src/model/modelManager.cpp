@@ -237,11 +237,16 @@ std::vector<std::array<float, 3>> modelManager::calculateColor(const std::array<
     
     for(unsigned int i(0); i < sideLength * sideLength; ++i)
     {
-        if(normals[i][1] > 0.98f)
+
+        if(normals[i][1] * Mountains[i] > 0.6f)
+        {
+            colors.push_back(color_white);
+        }
+        else if(normals[i][1] > 0.98f)
         {
             colors.push_back(color_very_dark_green);
         }
-        else if (normals[i][1] > 0.9f)
+        else if (normals[i][1] > 0.95f)
         {
             colors.push_back(color_dark_green);
         }
