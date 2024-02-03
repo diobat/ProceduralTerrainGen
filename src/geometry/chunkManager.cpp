@@ -77,6 +77,11 @@ void chunkManager::positionCallback()
     }
 };
 
+void chunkManager::hydroErosionCallback()
+{
+    
+}
+
 unsigned int chunkManager::getChunkSize() const
 {
     return _chunkSize;

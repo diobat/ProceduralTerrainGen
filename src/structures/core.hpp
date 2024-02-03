@@ -22,6 +22,9 @@ public:
 
     std::array<unsigned int, 2> getDimensions() const;
 
+    // HydroErosion
+    void hydroErosionStep();
+
     // Terrain gain factors
     void setLandWaterWeight(float weight);
     void setSlopeWeight(float weight);

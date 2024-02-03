@@ -21,6 +21,7 @@ public:
     const std::vector<float>& getChunkData(int x, int y);
 
     void positionCallback();
+    void hydroErosionCallback();
 
     unsigned int getChunkSize() const;
     float getGlobalScale() const;

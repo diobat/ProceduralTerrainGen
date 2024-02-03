@@ -79,7 +79,7 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
    // Create an N by N grid of vertices in the XZ plane
     std::vector<std::array<float,3>> vertices;
 
-    float hScale = global_scale / 10.0f;
+    float hScale = global_scale * 0.05f;
 
     for(int i(0); i < N; ++i)
     {
@@ -96,14 +96,14 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
     {
         for(int j(0); j < N - 1; ++j)
         {
-            // If all the vertices heights are 0, skip this square
-            if (vertices[i * N + j][1] == 0.0f &&
-                vertices[i * N + j + 1][1] == 0.0f &&
-                vertices[(i + 1) * N + j][1] == 0.0f &&
-                vertices[(i + 1) * N + j + 1][1] == 0.0f)
-            {
-                continue;
-            }
+            // // If all the vertices heights are 0, skip this square
+            // if (vertices[i * N + j][1] == 0.0f &&
+            //     vertices[i * N + j + 1][1] == 0.0f &&
+            //     vertices[(i + 1) * N + j][1] == 0.0f &&
+            //     vertices[(i + 1) * N + j + 1][1] == 0.0f)
+            // {
+            //     continue;
+            // }
 
             indices.push_back(i * N + j);
             indices.push_back(i * N + j + 1);
@@ -150,21 +150,8 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
         normals[i] = normalizeVector(normals[i]);
     }
 
-    std::vector<std::array<float,3>> colors = calculateColor(worldTileCoordinates, sideLength, hScale);
+    std::vector<std::array<float,3>> colors = calculateColor(worldTileCoordinates, sideLength, hScale, normals);
 
-    // std::array<float,3> color_green = {0.41f, 0.8f, 0.37f};
-    // std::array<float,3> color_dark_green = {0.11f, 0.35f, 0.07f};
-    // std::array<float,3> color_gray = {0.43f, 0.45f, 0.45f};
-    // std::array<float,3> color_white = {0.95f, 0.95f, 0.95f};
-    // std::array<float,3> color_blue = {0.0f, 0.18f, 0.30f};
-
-    // populateColorTable(color_green, color_dark_green);
-
-    // for (std::size_t i(0); i < vertices.size(); ++i)
-    // {
-        
-
-    // }
 
     // Generate a model for the water
     std::vector<std::array<float,3>> waterVertices;
@@ -193,10 +180,10 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
     waterNormals.push_back({0.0f, 1.0f, 0.0f});
     waterNormals.push_back({0.0f, 1.0f, 0.0f});
 
-    waterColors.push_back({0.0f, 0.0f, 0.5f});
-    waterColors.push_back({0.0f, 0.0f, 0.5f});
-    waterColors.push_back({0.0f, 0.0f, 0.5f});
-    waterColors.push_back({0.0f, 0.0f, 0.5f});
+    waterColors.push_back({0.0f, 0.11f, 0.38f});
+    waterColors.push_back({0.0f, 0.11f, 0.38f});
+    waterColors.push_back({0.0f, 0.11f, 0.38f});
+    waterColors.push_back({0.0f, 0.11f, 0.38f});
 
     // Calculate the world position of the model
     int sideLengthInt = static_cast<int>(sideLength);
@@ -208,12 +195,12 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
 
     std::array<float, 3> waterModelPosition = {
         static_cast<float>(worldTileCoordinates[0] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale,
-        -1.0f, 
+        -10.0f, 
         static_cast<float>(worldTileCoordinates[1] * (sideLengthInt-1) - (sideLengthInt/2)) * hScale
     };
 
-    boost::uuids::uuid waterModelID = _engine->create_Model(waterVertices, waterNormals, waterIndices, waterColors, "water");
-    _engine->setPosition(waterModelID, waterModelPosition);
+    // boost::uuids::uuid waterModelID = _engine->create_Model(waterVertices, waterNormals, waterIndices, waterColors, "water");
+    // _engine->setPosition(waterModelID, waterModelPosition);
 
     if(indices.size() != 0)
     {    
@@ -223,18 +210,20 @@ void modelManager::generateModel(const std::array<int,2>& worldTileCoordinates, 
     }
     else
     {
-        _generatedChunkModels[worldTileCoordinates] = waterModelID;
+        // _generatedChunkModels[worldTileCoordinates] = waterModelID;
     }
 }
 
-std::vector<std::array<float, 3>> modelManager::calculateColor(const std::array<int, 2>& worldTileCoordinates, unsigned int sideLength, float hScale) const
+std::vector<std::array<float, 3>> modelManager::calculateColor(const std::array<int, 2>& worldTileCoordinates, unsigned int sideLength, float hScale, const std::vector<std::array<float, 3>> normals) const
 {
 
     std::array<float,3> color_green = {0.41f, 0.8f, 0.37f};
     std::array<float,3> color_dark_green = {0.11f, 0.35f, 0.07f};
+    std::array<float,3> color_very_dark_green = {0.055f, 0.175f, 0.035f};
     std::array<float,3> color_gray = {0.43f, 0.45f, 0.45f};
     std::array<float,3> color_white = {1.0f, 1.0f, 1.0f};
-    std::array<float,3> color_blue = {0.0f, 0.18f, 0.30f};
+    std::array<float,3> color_blue = {0.0f, 0.11f, 0.38f};
+    std::array<float,3> color_brown = {0.30f, 0.08f, 0.03f};
     populateColorTable(color_green, color_dark_green);
 
     std::vector<std::array<float, 3>> colors;
@@ -248,30 +237,43 @@ std::vector<std::array<float, 3>> modelManager::calculateColor(const std::array<
     
     for(unsigned int i(0); i < sideLength * sideLength; ++i)
     {
-
-        if (LandWater[i] <= 0.0f)
+        if(normals[i][1] > 0.98f)
         {
-            colors.push_back(color_blue);
+            colors.push_back(color_very_dark_green);
         }
-        else if (Mountains[i] > 0.75f && Slope[i] > 0.5f)
+        else if (normals[i][1] > 0.9f)
         {
-            colors.push_back(color_white);
-        }
-        else if (Mountains[i] > 0.35f)
-        {
-            if (Slope[i] > 0.5f)
-            {
-                colors.push_back(color_gray);
-            }
-            else
-            {
-                colors.push_back(color_dark_green);
-            }
+            colors.push_back(color_dark_green);
         }
         else
         {
-            colors.push_back(getColor( std::min(LandWater[i], 0.99f)));
+            colors.push_back(color_gray);
         }
+
+        // if (LandWater[i] <= 0.0f)
+        // {
+        //     colors.push_back(color_blue);
+        // }
+        // else 
+        // if (Mountains[i] > 0.75f && Slope[i] > 0.5f)
+        // {
+        //     colors.push_back(color_white);
+        // }
+        // else if (Mountains[i] > 0.35f)
+        // {
+        //     if (Slope[i] > 0.5f)
+        //     {
+        //         colors.push_back(color_gray);
+        //     }
+        //     else
+        //     {
+        //         colors.push_back(color_dark_green);
+        //     }
+        // }
+        // else
+        // {
+        //     colors.push_back(getColor( std::min(LandWater[i], 0.99f)));
+        // }
     }
     
     return colors;

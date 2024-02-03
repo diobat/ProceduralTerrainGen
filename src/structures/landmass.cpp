@@ -30,13 +30,13 @@ std::vector<float> genLandmasses(unsigned int seed, unsigned int size, std::arra
 {
     std::vector<float> perlinMapLandWater = generatePerlinMap(seed+3, size, size, xyCenter[0], xyCenter[1], 12, 0.005f / scale, 1.2f, 1.0f, 0.85f);
     
-    if(waterLevelOffset == 0.0f)
-    {
-        findOffset(perlinMapLandWater, waterPercentage);
-    }
+    // if(waterLevelOffset == 0.0f)
+    // {
+    //     findOffset(perlinMapLandWater, waterPercentage);
+    // }
 
-    std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
-        std::bind(std::plus<float>(), std::placeholders::_1, -waterLevelOffset));
+    // std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
+    //     std::bind(std::plus<float>(), std::placeholders::_1, -waterLevelOffset));
 
     std::transform(perlinMapLandWater.begin(), perlinMapLandWater.end(), perlinMapLandWater.begin(),
                 [](float val) {return std::clamp(val, 0.0f, 10.0f);}

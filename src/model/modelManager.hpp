@@ -17,7 +17,7 @@ public:
 
     void generateModel(const std::array<int, 2>& worldTileCoordinates , unsigned int sideLength, const std::vector<float>& data, float zoom = 1.0f);
 
-    std::vector<std::array<float,3>> calculateColor(const std::array<int, 2>& worldTileCoordinates, unsigned int sideLength, float hScale) const;
+    std::vector<std::array<float,3>> calculateColor(const std::array<int, 2>& worldTileCoordinates, unsigned int sideLength, float hScale, const std::vector<std::array<float, 3>> normals) const;
     bool modelExists(const std::array<int, 2>& worldTileCoordinates) const;
     boost::uuids::uuid getModel(const std::array<int, 2>& worldTileCoordinates) const;
     const std::unordered_map<std::array<int, 2>, boost::uuids::uuid, ArrayHash>& allModels() const;

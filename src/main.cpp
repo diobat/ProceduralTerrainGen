@@ -28,10 +28,10 @@ int main(int argc, char** argv)
 
     // Chunk size and scale
     unsigned int N = 700;       // Size of the side of the map
-    float zoom_level = 10.0f;
+    float zoom_level = 100.0f;
 
     // Camera setup
-    engine.create_Camera(70.0f, zoom_level, 0.001f); 
+    engine.create_Camera(70.0f, zoom_level / 6.0f, 0.001f); 
     engine.setCameraPosition({0.0f, 10.0f * zoom_level, 0.0f});
 
     // Generate all necessary Perlin noise maps
@@ -41,7 +41,8 @@ int main(int argc, char** argv)
 
     if(!GRT)
     {
-        int gridSize = static_cast<int>(std::ceil(zoom_level/2.0f)); 
+        // int gridSize = static_cast<int>(std::ceil(zoom_level/2.0f)); 
+        int gridSize = 1; 
 
         for(int x(-gridSize/2); x <= gridSize/2; ++x)
         {

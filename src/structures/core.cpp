@@ -14,6 +14,9 @@
 #include "structures/mountains.hpp"
 #include "structures/roughness.hpp"
 
+// Hydraulic Erosion
+#include "erosion/hydro.hpp"
+
 Planet::Planet(unsigned int sideSize, const std::array<int, 2>& offsetCoords ,float waterPercentage, float globalscale, unsigned int seed) :
     _seed(seed),
     _mapSideSize(sideSize),
@@ -68,15 +71,20 @@ const std::vector<float>& Planet::bake()
     // std::transform(_ruggedWeighted.begin(), _ruggedWeighted.end(), _ruggedWeighted.begin(), 
     //     std::bind(std::multiplies<float>(), std::placeholders::_1, _Rugged_Weight));
 
+    
+
     _planet.resize(_mapSideSize*_mapSideSize);
     for(size_t i = 0; i < _mapSideSize*_mapSideSize; ++i) {
-        _planet[i] = _landWaterWeighted[i] + _slopeWeighted[i] + _mountainsWeighted[i];// + _ruggedWeighted[i];
-        // _planet[i] =_slopeWeighted[i];
+        // _planet[i] = _landWaterWeighted[i] + _slopeWeighted[i] + _mountainsWeighted[i];// + _ruggedWeighted[i];
+        _planet[i] = _mapMountainsBase[i] * 1.5f * _globalscale;
     }
 
     std::transform(_planet.begin(), _planet.end(), _planet.begin(),
                 [](float val) {return std::clamp(val, 0.0f, 500.0f);}
                 );
+
+    HydroEroder eroder(_planet, _mapSideSize);
+    eroder.drop(100000);
 
     return _planet;
 }
@@ -127,6 +135,8 @@ std::array<unsigned int, 2> Planet::getDimensions() const
     std::array<unsigned int, 2> result({_mapSideSize, _mapSideSize});
     return result;
 }
+
+
 
 /////// TERRAIN GENERATION ///////
 
