@@ -7,6 +7,7 @@
 
 ## Overview
 Welcome to ProceduralTerrainGen, a FluxLumina Example Project! 
+
 This project generates geometry & renders continuous infinite chunks of terrain. It makes use of Perlin noise and Hydraulic Erosion to generate realistic landmasses with visually appealing geographical features.
 
 It also serves as a template to demonstrate the capabilities of [FluxLumina](https://github.com/diobat/FluxLumina), an OpenGL-based rendering engine static library. 
