@@ -1,6 +1,6 @@
 
 
-# FluxLumina-based Procedural terrain generator
+# Procedural terrain generator
 <div align="center">
 <img width="1457" alt="PTG_snow" src="https://github.com/diobat/ProceduralTerrainGen/assets/25584192/925adb97-4afd-4914-9bf9-9343791e3981">
 </div>  
